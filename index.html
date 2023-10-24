@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-
-=======
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -17,28 +14,50 @@
     <div class="main-container">
       <form>
         <fieldset>
-          <legend><h1>Class Attendance Logging</h1></legend>
+          <legend>
+            <h1>Class Attendance Logging</h1>
+            <span class="call-to-action"
+              ><i>Fill your class attendance below</i>
+            </span>
+          </legend>
           <div>
             <label>
-              Student Name:
+              Student Full Name:
               <br />
               <input
                 type="text"
                 id="name"
                 placeholder="Samuel Oyenuga"
+                minlength="5"
                 autocomplete="name"
                 required
               />
+              <br />
+              <span>
+                <p class="warning-msg">
+                  <i>Enter your full name properly. Hint: use only letters</i>
+                </p>
+              </span>
             </label>
             <label>
-              Class:
+              Class (course code and title):
               <br />
               <input
                 type="text"
                 placeholder="EEE 405 - Embedded Systems and Automation"
                 id="class"
+                minlength="6"
                 required
               />
+              <br />
+              <span>
+                <p class="warning-msg">
+                  ><i
+                    >Enter the course code and title of the lecture properly.
+                    Hint: EEE 405 - Embedded Systems and Automation</i
+                  >
+                </p>
+              </span>
             </label>
           </div>
           <div class="submit-container">
@@ -69,9 +88,6 @@
             <div></div>
           </div>
         </div>
-        <div class="call-to-action">
-          <p><i>Fill your class attendance above</i></p>
-        </div>
         <div class="attendance-list-container"></div>
       </div>
     </div>
@@ -79,4 +95,3 @@
     <script src="app.js"></script>
   </body>
 </html>
->>>>>>> 65ce927 (Attendance Logging Application)

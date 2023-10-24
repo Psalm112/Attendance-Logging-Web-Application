@@ -1,5 +1,6 @@
 let studentName = document.querySelector("#name");
 let lectureName = document.querySelector("#class");
+let warningMessage = document.querySelectorAll(".warning-msg");
 let submitButton = document.querySelector("#submit-btn");
 let attendanceContainer = document.querySelector(".attendance-list-container");
 let loader = document.querySelector("#loader");
@@ -10,12 +11,41 @@ let searchBox;
 let eraseRestoreBtn = [];
 let attendanceList = [];
 let filterIndex = [];
-let length = 0;
+let childIndex = 0;
+const namePattern = /^[A-Za-z]+ ?([A-Za-z]+ ?[A-Za-z]+)?$/;
+const classPattern = /^[A-Za-z]+ ?(\d{3}) ?(-? ?[A-Za-z]+)?$/;
+var months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
-// fetching existing attendances from localstorage
+//Checking if the number of children in the attendanceContainer has increased.
+// const config = { attributes: true, childList: true, subtree: true };
+const ifChanged = (mutationList, observer) => {
+  for (const mutation of mutationList) {
+    if (mutation.type === "childList") {
+      // When it increases the eraseRestore function is called to add an eventlistener to the new child element for erasing and restoring attendances
+      eraseRestore(childIndex);
+      childIndex++;
+    }
+  }
+};
+
+const observer = new MutationObserver(ifChanged);
+observer.observe(attendanceContainer, { childList: true });
+
+// When the web page window is loaded previously saved attendances if available are fetched from the localstorage to be displayed
 window.addEventListener("load", function (e) {
-  // e.stopPropagation();
-  // e.stopImmediatePropagation();
   if (localStorage.getItem("attendances")) {
     JSON.parse(localStorage.getItem("attendances")).forEach((attendance) => {
       const newAttendance = document.createElement("div");
@@ -23,6 +53,7 @@ window.addEventListener("load", function (e) {
       newAttendance.innerHTML = `<div class="attendance">
               <h3>${attendance.name}</h3>
               <p>${attendance.class}</p>
+              <p class="date-time">${attendance.entryTime}</p>
             </div>
             <div class="remove-restore">
               <span class="material-symbols-outlined icon">
@@ -42,40 +73,60 @@ window.addEventListener("load", function (e) {
       attendanceContainer.appendChild(newAttendance);
       attendanceList.push(attendance);
     });
-    // eraseRestoreBtn = document.querySelectorAll(".remove-restore span");
-    length = attendanceList.length;
   }
-  // console.log(attendanceList[0]);
-  eraseRestoreBtn = document.getElementsByClassName("icon");
-  eraseRestore();
+
   setTimeout(function () {
     loader.style.display = "none";
   }, 1500);
-  // console.log(attendanceList[0]);
 });
 
-submitButton.addEventListener("click", function (e) {
-  // if (attendanceList[0] === undefined) {
-  //   eraseRestoreBtn = document.querySelectorAll(".remove-restore span");
-
-  // }
-  // console.log(e.target);
-  if (studentName.value.length < 5 || lectureName.value.length < 10) {
-    e.target.setAttribute("disabled", "");
-    setTimeout(function () {
-      e.target.removeAttribute("disabled");
-    }, 500);
+// The submit attendance button to add the filled name and class to the attendance with the time it was added
+studentName.addEventListener("input", () => {
+  if (namePattern.test(studentName.value.trim())) {
+    submitButton.removeAttribute("disabled");
+    warningMessage[0].classList.remove("active");
   } else {
-    attendanceList.push({
-      name: studentName.value.trim(),
-      class: lectureName.value.trim(),
-      erase: false,
-    });
-    const newAttendance = document.createElement("div");
-    newAttendance.classList.add("attendance-list");
-    newAttendance.innerHTML = `<div class="attendance">
+    submitButton.setAttribute("disabled", "disabled");
+    warningMessage[0].classList.add("active");
+  }
+});
+
+lectureName.addEventListener("input", () => {
+  if (classPattern.test(lectureName.value.trim())) {
+    submitButton.removeAttribute("disabled");
+    warningMessage[1].classList.remove("active");
+  } else {
+    submitButton.setAttribute("disabled", "disabled");
+    warningMessage[1].classList.add("active");
+  }
+});
+submitButton.addEventListener("click", function (e) {
+  e.preventDefault();
+  const now = new Date();
+  let year = now.getFullYear();
+  let month = months[now.getMonth()];
+  let date = now.getDate();
+  let hour = now.getHours();
+  let minutes = now.getMinutes();
+  let am_pm = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12;
+  hour = hour ? hour : 12;
+  minutes = minutes < 10 ? "0" + minutes : minutes;
+  let currentDateTIme = `${hour}:${minutes} ${am_pm}  ${month} ${date}, ${year}`;
+  attendanceList.push({
+    name: studentName.value.trim(),
+    class: lectureName.value.trim(),
+    erase: false,
+    entryTime: currentDateTIme,
+  });
+  const newAttendance = document.createElement("div");
+  newAttendance.classList.add("attendance-list");
+  newAttendance.innerHTML = `<div class="attendance">
               <h3>${attendanceList[attendanceList.length - 1].name}</h3>
               <p>${attendanceList[attendanceList.length - 1].class}</p>
+              <p class="date-time">${
+                attendanceList[attendanceList.length - 1].entryTime
+              }</p>
             </div>
             <div class="remove-restore">
               <span class="material-symbols-outlined icon">
@@ -83,27 +134,12 @@ submitButton.addEventListener("click", function (e) {
                 <span class="tooltiptext">Erase name</span>
               </span>
             </div>`;
-    attendanceContainer.appendChild(newAttendance);
-    studentName.value = "";
-    lectureName.value = "";
-    localStorage.setItem("attendances", JSON.stringify(attendanceList));
-    console.log(length);
-    // for (let i = length; i < attendanceContainer.children.length; i++) {
-    //   if (length === 0 && i > length) {
-    //     length = i;
-    //   }
-    //   console.log(attendanceContainer.children[i]);
-    //   attendanceContainer.children[i].addEventListener(
-    //     "mouseup",
-    //     () => {
-    //       eraseRestore();
-    //     },
-    //     { once: true }
-    //   );
-    // }
-    console.log(attendanceList);
-  }
+  attendanceContainer.appendChild(newAttendance);
+  studentName.value = "";
+  lectureName.value = "";
+  localStorage.setItem("attendances", JSON.stringify(attendanceList));
 });
+
 // Search functionality
 search.addEventListener("input", () => {
   searchBox = search.value.trim().toLowerCase();
@@ -182,59 +218,36 @@ filter.addEventListener("change", () => {
 });
 
 // Erasing and Restoring attendance
-// console.log(attendanceContainer.querySelectorAll(".attendance-list"));
-// for (let i = 0; i < attendanceContainer.children.length; i++) {
-// attendanceContainer.querySelectorAll(".attendance-list").forEach((e) => {
-//   console.log(e.target);
-//   e.target.addEventListener("mouseenter", () => {
-//     console.log("hh");
-//     for (let index = 0; index < eraseRestoreBtn.length; index++) {
-//       // eraseRestoreBtn.forEach((btn, index) => {
-//       eraseRestoreBtn[index].addEventListener("click", (e) => {
-//         // console.log(e.target.children);
-//         console.log(e.target);
-//         e.target.parentNode.parentNode.classList.toggle("erase");
-//         if (!e.target.textContent.includes("format_ink_highlighter")) {
-//           e.target.innerHTML = `
-//           format_ink_highlighter
-//           <span class="tooltiptext">Erase name</span>`;
-//           attendanceList[index].erase = false;
-//           e.target.classList.remove("restore-btn");
-//         } else {
-//           e.target.innerHTML = `settings_backup_restore
-//         <span class="tooltiptext">Restore name</span>`;
-//           e.target.classList.add("restore-btn");
-//           attendanceList[index].erase = true;
-//         }
-//         localStorage.setItem("attendances", JSON.stringify(attendanceList));
-//       });
-//     }
-//   });
-// });
-function eraseRestore() {
-  // if (attendanceList[0] != undefined) {
+function eraseRestore(i) {
+  eraseRestoreBtn = document.getElementsByClassName("icon");
+
+  // Add event listeners
   for (let index = 0; index < eraseRestoreBtn.length; index++) {
-    // eraseRestoreBtn.forEach((btn, index) => {
-    eraseRestoreBtn[index].addEventListener("click", (e) => {
-      // console.log(e.target.children);
-      console.log(e.target);
-      e.target.parentNode.parentNode.classList.toggle("erase");
-      if (!e.target.textContent.includes("format_ink_highlighter")) {
-        e.target.innerHTML = `
-          format_ink_highlighter 
-          <span class="tooltiptext">Erase name</span>`;
-        attendanceList[index].erase = false;
-        e.target.classList.remove("restore-btn");
-      } else {
-        e.target.innerHTML = `settings_backup_restore 
-        <span class="tooltiptext">Restore name</span>`;
-        e.target.classList.add("restore-btn");
-        attendanceList[index].erase = true;
-      }
-      localStorage.setItem("attendances", JSON.stringify(attendanceList));
-    });
+    if (i === index) {
+      eraseRestoreBtn[index].addEventListener("click", (e) => {
+        e.stopPropagation();
+        eraseRestoreClickHandler(e, index);
+      });
+    }
   }
 }
 
+function eraseRestoreClickHandler(e, index) {
+  console.log(e.target);
+  e.target.parentNode.parentNode.classList.toggle("erase");
+  if (!e.target.textContent.includes("format_ink_highlighter")) {
+    e.target.innerHTML = `
+          format_ink_highlighter 
+          <span class="tooltiptext">Erase name</span>`;
+    attendanceList[index].erase = false;
+    e.target.classList.remove("restore-btn");
+  } else {
+    e.target.innerHTML = `settings_backup_restore 
+        <span class="tooltiptext">Restore name</span>`;
+    e.target.classList.add("restore-btn");
+    attendanceList[index].erase = true;
+  }
+  localStorage.setItem("attendances", JSON.stringify(attendanceList));
+}
 // : callToAction.classList.add("disabled")
 // }
