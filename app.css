@@ -28,7 +28,16 @@ fieldset legend h1{
     color: #0068ad66;
     font-size: 24px;
     font-weight: 500;
+    margin-bottom: 0;
 }
+fieldset legend .call-to-action {
+    text-align: center;
+    font-size: small;
+}
+
+/* .call-to-action.disabled {
+    display: none;
+} */
 fieldset div{
     display: flex;
     flex-direction: row;
@@ -59,6 +68,52 @@ fieldset div label input:focus{
     box-shadow: inset 4px 4px 14px #6b6b6b,
             inset -4px -4px 14px #ffffff;
     border-color: transparent;
+}
+
+fieldset div label span:has(.warning-msg){
+    display: inline-block;
+    overflow-y: hidden;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+fieldset div label span:has(.warning-msg)::-webkit-scrollbar {
+    display: none;
+}
+.warning-msg{
+    font-weight: lighter;
+    font-size: smaller;
+    display: none;
+    transform: translateX(100%);
+    margin: 0;
+    animation: warning 0.6s forwards;
+    /* transition: transform 10s ease-in-out; */
+}
+.warning-msg i{
+    color: #ff6347;
+}
+.warning-msg.active{
+    display: inline-block;
+    animation: warningActive 0.6s forwards;
+}
+@keyframes warning {
+    0% {
+        transform: translateY(0);
+        display: inline-block;
+    }
+
+    100% {
+        transform: translateY(-100%);
+        display: none;
+    }
+}
+@keyframes warningActive {
+    0% {
+        transform: translateY(100%);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
 }
 .submit-container{
     background: linear-gradient(145deg, #0083da, #006eb8);
@@ -156,12 +211,6 @@ fieldset div label input:focus{
     align-items: center;
     justify-content: center;
     transition: 3s all;
-}
-.call-to-action{
-    text-align: center;
-}
-.call-to-action.disabled{
-    display: none;
 }
 .attendance-loader {
     display: inline-block;
@@ -304,6 +353,7 @@ fieldset div label input:focus{
     background-color: #f4f4f4;
 }
 .attendance-list-container .attendance-list .attendance h3 {
+    text-transform: uppercase;
     transition: 0.4s all;
 }
 .attendance-list-container .attendance-list.erase .attendance h3 {
@@ -318,6 +368,10 @@ fieldset div label input:focus{
     color: #333333;
     font-weight: 100;
     transition: 0.4s all;
+}
+.attendance-list-container .attendance-list .attendance p.date-time{
+    font-size: small;
+    font-weight: 100;
 }
 .attendance-list-container .attendance-list.erase .attendance p {
     text-decoration: line-through;
@@ -401,6 +455,6 @@ fieldset div label input:focus{
 
 @media screen and (max-width: 480px) {
     fieldset legend h1 {
-        font-size: 5vw;
+        font-size: large;
     }
 }
