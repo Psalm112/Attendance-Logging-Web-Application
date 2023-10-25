@@ -102,26 +102,33 @@ lectureName.addEventListener("input", () => {
 });
 submitButton.addEventListener("click", function (e) {
   e.preventDefault();
-  const now = new Date();
-  let year = now.getFullYear();
-  let month = months[now.getMonth()];
-  let date = now.getDate();
-  let hour = now.getHours();
-  let minutes = now.getMinutes();
-  let am_pm = hour >= 12 ? "PM" : "AM";
-  hour = hour % 12;
-  hour = hour ? hour : 12;
-  minutes = minutes < 10 ? "0" + minutes : minutes;
-  let currentDateTIme = `${hour}:${minutes} ${am_pm}  ${month} ${date}, ${year}`;
-  attendanceList.push({
-    name: studentName.value.trim(),
-    class: lectureName.value.trim(),
-    erase: false,
-    entryTime: currentDateTIme,
-  });
-  const newAttendance = document.createElement("div");
-  newAttendance.classList.add("attendance-list");
-  newAttendance.innerHTML = `<div class="attendance">
+  if (studentName.value.length < 5) {
+    e.target.setAttribute("disabled", "disabled");
+    warningMessage[0].classList.add("active");
+  } else if (lectureName.value === "") {
+    e.target.setAttribute("disabled", "disabled");
+    warningMessage[1].classList.add("active");
+  } else {
+    const now = new Date();
+    let year = now.getFullYear();
+    let month = months[now.getMonth()];
+    let date = now.getDate();
+    let hour = now.getHours();
+    let minutes = now.getMinutes();
+    let am_pm = hour >= 12 ? "PM" : "AM";
+    hour = hour % 12;
+    hour = hour ? hour : 12;
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+    let currentDateTIme = `${hour}:${minutes} ${am_pm}  ${month} ${date}, ${year}`;
+    attendanceList.push({
+      name: studentName.value.trim(),
+      class: lectureName.value.trim(),
+      erase: false,
+      entryTime: currentDateTIme,
+    });
+    const newAttendance = document.createElement("div");
+    newAttendance.classList.add("attendance-list");
+    newAttendance.innerHTML = `<div class="attendance">
               <h3>${attendanceList[attendanceList.length - 1].name}</h3>
               <p>${attendanceList[attendanceList.length - 1].class}</p>
               <p class="date-time">${
@@ -134,10 +141,11 @@ submitButton.addEventListener("click", function (e) {
                 <span class="tooltiptext">Erase name</span>
               </span>
             </div>`;
-  attendanceContainer.appendChild(newAttendance);
-  studentName.value = "";
-  lectureName.value = "";
-  localStorage.setItem("attendances", JSON.stringify(attendanceList));
+    attendanceContainer.appendChild(newAttendance);
+    studentName.value = "";
+    lectureName.value = "";
+    localStorage.setItem("attendances", JSON.stringify(attendanceList));
+  }
 });
 
 // Search functionality
@@ -233,7 +241,7 @@ function eraseRestore(i) {
 }
 
 function eraseRestoreClickHandler(e, index) {
-  console.log(e.target);
+  // console.log(e.target);
   e.target.parentNode.parentNode.classList.toggle("erase");
   if (!e.target.textContent.includes("format_ink_highlighter")) {
     e.target.innerHTML = `
