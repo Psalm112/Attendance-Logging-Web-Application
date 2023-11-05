@@ -10,8 +10,8 @@ function App() {
     reset,
     formState: { errors },
   } = useForm();
-  const attendanceRef = useRef(null);
-  const [attendances, setAttendances] = useState([]);
+  // const attendanceRef = useRef(null);
+  // const [attendances, setAttendances] = useState([]);
   const months = [
     "January",
     "February",
@@ -27,16 +27,25 @@ function App() {
     "December",
   ];
   const [attendanceList, setAttendanceList] = useState([]);
-  const [isStorageLoaded, setIsStorageLoaded] = useState(false);
+  const [isShow, setIsShow] = useState(true);
   // When the web page window is loaded previously saved attendances if available are fetched from the localstorage to be displayed
+  const storedAttendances = localStorage.getItem("attendances") ?? "[]";
+  // console.log(storedAttendances);
+  const parsedAttendances = JSON.parse(storedAttendances);
+  // console.log(parsedAttendances);
+  // Whrn i set the attendance list outside a useEffect hook it gave me this errorr:
+  // Uncaught Error: Too many re-renders. React limits the number of renders to prevent an infinite loop.
+  // this happened because i set state without proper conditions, leading to a continuous re-rendering of the App.jsx component.
+  // so i had to return it to the useEffect hook below
+  // if (storedAttendances) {
+  // setAttendanceList(parsedAttendances);
+  // }
+
   useEffect(() => {
-    const storedAttendances = localStorage.getItem("attendances");
-    if (storedAttendances) {
-      const parsedAttendances = JSON.parse(storedAttendances);
-      setAttendanceList(parsedAttendances);
-    }
+    setAttendanceList(parsedAttendances);
+    //the setimeout is used to remove the loading animation after 1.5sec
     setTimeout(() => {
-      setIsStorageLoaded(true);
+      setIsShow(false);
     }, 1500);
     return () => {
       setAttendanceList([]);
@@ -45,6 +54,7 @@ function App() {
 
   // The submit attendance button to add the filled name and class to the attendance with the time it was added
   const onSubmit = (data) => {
+    console.log(data);
     const now = new Date();
     let year = now.getFullYear();
     let month = months[now.getMonth()];
@@ -56,25 +66,20 @@ function App() {
     hour = hour ? hour : 12;
     minutes = minutes < 10 ? "0" + minutes : minutes;
     let currentDateTIme = `${hour}:${minutes} ${am_pm}  ${month} ${date}, ${year}`;
-    setAttendanceList([
-      ...attendanceList,
-      {
-        name: data.name.trim(),
-        class: data.courseTitle.trim(),
-        erase: false,
-        entryTime: currentDateTIme,
-      },
-    ]);
+    const newAttendanceEntry = {
+      name: data.name.trim(),
+      class: data.courseTitle.trim(),
+      erase: false,
+      entryTime: currentDateTIme,
+    };
+    const updatedAttendanceList = [...attendanceList, newAttendanceEntry];
+    setAttendanceList(updatedAttendanceList);
+    localStorage.setItem("attendances", JSON.stringify(updatedAttendanceList));
     reset({
       name: "",
       courseTitle: "",
     });
   };
-  useEffect(() => {
-    if (isStorageLoaded) {
-      localStorage.setItem("attendances", JSON.stringify(attendanceList));
-    }
-  }, [attendanceList]);
 
   // Search functionality
   const [isNotSearchResult, setIsNotSearchResult] = useState([]);
@@ -221,7 +226,7 @@ function App() {
             </div>
           </div>
 
-          {!isStorageLoaded && (
+          {isShow && (
             <div id="loader">
               <div className="attendance-loader">
                 <div></div>
@@ -232,12 +237,14 @@ function App() {
             </div>
           )}
 
-          <div ref={attendanceRef} className="attendance-list-container">
+          <div className="attendance-list-container">
             <Attendance
               attendanceList={attendanceList}
+              setAttendanceList={setAttendanceList}
               isNotSearchResult={isNotSearchResult}
               isNotFilterResult={isNotFilterResult}
-              isStorageLoaded={isStorageLoaded}
+              // isStorageLoaded={isStorageLoaded}
+              // updatedAttendanceList={updatedAttendanceList}
             />
           </div>
         </div>
